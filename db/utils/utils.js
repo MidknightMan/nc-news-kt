@@ -7,6 +7,22 @@ exports.formatDates = list => {
   return newList;
 };
 
-exports.makeRefObj = list => {};
+exports.makeRefObj = list => {
+  const articleRef = {};
+  list.forEach(article => {
+    articleRef[article.title] = article.article_id;
+  });
+  return articleRef;
+};
 
-exports.formatComments = (comments, articleRef) => {};
+exports.formatComments = (comments, articleRef) => {
+  const formatCom1 = comments.map(
+    ({ created_by, belongs_to, ...restOfComment }) => {
+      const formattedComment = { ...restOfComment };
+      formattedComment.author = created_by;
+      formattedComment.article_id = articleRef[belongs_to];
+      return formattedComment;
+    }
+  );
+  return this.formatDates(formatCom1);
+};
