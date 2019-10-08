@@ -1,6 +1,7 @@
 const db = require('../db/connection');
 
 exports.fetchArticleById = ({ article_id }) => {
+  console.log(article_id);
   return db
     .select('*')
     .from('articles')
