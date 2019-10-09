@@ -1,5 +1,8 @@
 process.env.NODE_ENV = 'test';
-const { expect } = require('chai');
+const chai = require('chai');
+const chaiSorted = require('sams-chai-sorted');
+const { expect } = chai;
+chai.use(chaiSorted);
 const request = require('supertest');
 const app = require('../app.js');
 const connection = require('../db/connection.js');
@@ -73,7 +76,7 @@ describe('app', () => {
           .get('/api/articles/rowdy-chav-in-a-tractor')
           .expect(400)
           .then(({ body }) => {
-            expect(body.msg).to.equal('bad article request');
+            expect(body.msg).to.equal('bad request');
           });
       });
       it('PATCH /:article_id returns a 200 status code and updates the article with the passed information', () => {
@@ -99,7 +102,119 @@ describe('app', () => {
           .expect(400)
           .then(({ body }) => expect(body.msg).to.equal('invalid update'));
       });
+      it('GET / 200 returns a list of all articles which is sorted by default as descending by date', () => {
+        return request(app)
+          .get('/api/articles')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles).to.be.descendingBy('created_at');
+            expect(body.articles).to.be.an('array');
+            expect(body.articles[0]).to.contain.keys(
+              'title',
+              'article_id',
+              'topic',
+              'created_at',
+              'votes',
+              'comment_count'
+            );
+          });
+      });
+      it('GET /?order=asc returns the list of articles sorted in ascending created_at order', () => {
+        return request(app)
+          .get('/api/articles?order=asc')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles).to.be.ascendingBy('created_at');
+          });
+      });
+      it.only('GET /?author=icellusedkars returns only a list of articles written by the specified author', () => {
+        return request(app)
+          .get('/api/articles?author=icellusedkars')
+          .expect(200)
+          .then(({ body }) => {
+            body.articles.forEach(article => {
+              expect(article.author).to.equal('icellusedkars');
+            });
+          });
+      });
+      it.only('GET /?topic=cats returns only a list of articles written by the specified author', () => {
+        return request(app)
+          .get('/api/articles?topic=cats')
+          .expect(200)
+          .then(({ body }) => {
+            body.articles.forEach(article => {
+              expect(article.topic).to.equal('cats');
+            });
+          });
+      });
     });
-    describe('/comments', () => {});
+    describe('/comments', () => {
+      it('POST /:article_id/comments returns a 201 status code and adds a comment to the specified article returning the posted comment', () => {
+        return request(app)
+          .post('/api/articles/2/comments')
+          .send({ username: 'icellusedkars', body: 'que pretendes' })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.comment[0]).to.contain.keys(
+              'comments_id',
+              'author',
+              'article_id',
+              'votes',
+              'created_at',
+              'body'
+            );
+          });
+      });
+      it('POST /:article_id/comments returns a 400 status code when the body of the post contains invalid inputs', () => {
+        return request(app)
+          .post('/api/articles/2/comments')
+          .send({ theboizzz: 'snoop', bodizzle: 6 })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
+          });
+      });
+      it('POST /:article_id/comments returns a 404 status code when the body of the post contains invalid inputs', () => {
+        return request(app)
+          .post('/api/articles/500/comments')
+          .send({ username: 'icellusedkars', body: 'que pretendes' })
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
+          });
+      });
+      it('GET /:article_id/comments returns a 200 status code and an array of comments for the specified article and is sorted by created_at by default in descending order', () => {
+        return request(app)
+          .get('/api/articles/1/comments')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments[0]).to.contain.keys(
+              'comments_id',
+              'votes',
+              'created_at',
+              'author',
+              'body',
+              'article_id'
+            );
+            expect(body.comments).to.be.descendingBy('created_at');
+          });
+      });
+      it('GET /:article_id/comments returns a 200 status code and an array of comments for the specified article sorted by the column specified', () => {
+        return request(app)
+          .get('/api/articles/1/comments?sort_by=votes')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments).to.be.descendingBy('votes');
+          });
+      });
+      it('GET /:article_id/comments returns a 200 status code and an array of comments for the specified article sorted by the order specified', () => {
+        return request(app)
+          .get('/api/articles/1/comments?order=asc')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comments).to.be.sorted({ ascending: true });
+          });
+      });
+    });
   });
 });

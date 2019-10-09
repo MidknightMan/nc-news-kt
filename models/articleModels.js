@@ -44,3 +44,53 @@ exports.updateArticleById = (id, vote) => {
       });
   }
 };
+
+exports.addComment = ({ article_id }, { username, body }) => {
+  return db('comments')
+    .insert({ author: username, article_id: article_id, body: body })
+    .returning('*')
+    .then(postedComment => {
+      if (!postedComment) {
+        return Promise.reject({
+          status: 400,
+          msg: 'bad request'
+        });
+      } else return postedComment;
+    });
+};
+
+exports.fetchCommentsByArticle = (
+  { article_id },
+  sorter = 'created_at',
+  order = 'desc'
+) => {
+  return db
+    .select('*')
+    .from('comments')
+    .where('article_id', article_id)
+    .orderBy(sorter, order);
+};
+
+exports.fetchAllArticles = (
+  sortby = 'created_at',
+  order = 'desc',
+  author,
+  topic
+) => {
+  return db
+    .select('articles.*')
+    .from('articles')
+    .leftJoin('comments', 'articles.article_id', 'comments.article_id')
+    .groupBy('articles.article_id')
+    .count('comments.comments_id as comment_count')
+    .orderBy(sortby, order)
+    .modify(query => {
+      if (author) query.where({ 'articles.author': author });
+      if (topic) query.where({ 'articles.topic': topic });
+    })
+    .then(articleList => {
+      if (!articleList) {
+        return Promise.reject({ status: 400, msg: 'not found' });
+      } else return articleList;
+    });
+};
