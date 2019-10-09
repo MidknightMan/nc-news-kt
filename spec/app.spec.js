@@ -73,7 +73,7 @@ describe('app', () => {
           .get('/api/articles/rowdy-chav-in-a-tractor')
           .expect(404)
           .then(({ body }) => {
-            expect(body.msg).to.equal('article does not exist');
+            expect(body.msg).to.equal('article not found');
           });
       });
     });

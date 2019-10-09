@@ -1,19 +1,21 @@
 const db = require('../db/connection');
 
 exports.fetchArticleById = ({ article_id }) => {
-  console.log(article_id);
   return db
-    .select('*')
+    .select('articles.*')
     .from('articles')
-    .where('article_id', article_id)
-    .returning('*')
+    .leftJoin('comments', 'articles.article_id', 'comments.article_id')
+    .groupBy('articles.article_id')
+    .count('comments.comments_id as comment_count')
+    .modify(query => {
+      if (article_id) query.where({ 'articles.article_id': article_id });
+    })
     .then(article => {
-      return db('comments')
-        .count('article_id', article_id)
-        .then(commentCount => {
-          article[0].comment_count = commentCount[0].count;
-          return article;
+      if (!article) {
+        return Promise.reject({
+          status: 404,
+          msg: 'article does not exist'
         });
-      // .then(console.log(article[0]));
+      } else return article;
     });
 };
