@@ -7,6 +7,10 @@ exports.customErrorHandling = (err, req, res, next) => {
 exports.PSQLerrors = (err, req, res, next) => {
   const errPSQLCodes = ['22P02'];
   if (errPSQLCodes.includes(err.code)) {
-    res.status(404).send({ msg: 'article not found' });
-  }
+    res.status(400).send({ msg: 'bad article request' });
+  } else next(err);
+};
+
+exports.errorCatcher = (err, req, res, next) => {
+  console.log(err);
 };

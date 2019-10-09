@@ -68,13 +68,36 @@ describe('app', () => {
             expect(body.article[0]).to.contain.keys('comment_count');
           });
       });
-      it('GET /:article_id returns a 404 error when a non-existent article_id is requested', () => {
+      it('GET /:article_id returns a 400 error when a non-existent article_id is requested but the format of the request is a string', () => {
         return request(app)
           .get('/api/articles/rowdy-chav-in-a-tractor')
-          .expect(404)
+          .expect(400)
           .then(({ body }) => {
-            expect(body.msg).to.equal('article not found');
+            expect(body.msg).to.equal('bad article request');
           });
+      });
+      it('PATCH /:article_id returns a 200 status code and updates the article with the passed information', () => {
+        return request(app)
+          .patch('/api/articles/2')
+          .send({ inc_votes: 1 })
+          .expect(200)
+          .then(({ body }) => expect(body.article[0].votes).to.equal(1));
+      });
+      it('PATCH /:article_id returns a 200 status code and lowers the vote count when passed a negative', () => {
+        return request(app)
+          .patch('/api/articles/2')
+          .send({ inc_votes: -100 })
+          .expect(200)
+          .then(({ body }) => expect(body.article[0].votes).to.equal(-100));
+      });
+      it('PATCH /:article_id returns a 400 status code when passed an invalid request', () => {
+        return request(app)
+          .patch('/api/articles/2')
+          .send({
+            inc_votes: 'potatoes, boil them, mash them, stick them in a stew'
+          })
+          .expect(400)
+          .then(({ body }) => expect(body.msg).to.equal('invalid update'));
       });
     });
     describe('/comments', () => {});
