@@ -11,12 +11,11 @@ describe('app', () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
   describe('/api', () => {
-    it.only('GET / responds with 200 and a JSON file containing all endpoints available', () => {
+    it('GET / responds with 200 and a JSON file containing all endpoints available', () => {
       request(app)
         .get('/api')
         .expect(200)
         .then(({ body }) => {
-          console.log(body);
           expect(body).to.be.an('object');
         });
     });
@@ -79,12 +78,20 @@ describe('app', () => {
             expect(body.article[0]).to.contain.keys('comment_count');
           });
       });
-      it('GET /:article_id returns a 400 error when a non-existent article_id is requested but the format of the request is a string', () => {
+      it('GET /:article_id returns a 400 error when a nonsensical article_id is requested but the format of the request is a string', () => {
         return request(app)
           .get('/api/articles/rowdy-chav-in-a-tractor')
           .expect(400)
           .then(({ body }) => {
             expect(body.msg).to.equal('bad request');
+          });
+      });
+      it('GET /:article_id returns a 404 error when a non-existent article_id is requested', () => {
+        return request(app)
+          .get('/api/articles/404')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
           });
       });
       it('PATCH /:article_id returns a 200 status code and updates the article with the passed information', () => {
@@ -222,7 +229,7 @@ describe('app', () => {
             expect(body.msg).to.equal('bad request');
           });
       });
-      it('POST /:article_id/comments returns a 404 status code when the body of the post contains invalid inputs', () => {
+      it('POST /:article_id/comments returns a 404 status code when the article is not found', () => {
         return request(app)
           .post('/api/articles/500/comments')
           .send({ username: 'icellusedkars', body: 'que pretendes' })
@@ -263,6 +270,22 @@ describe('app', () => {
             expect(body.comments).to.be.sorted({ ascending: true });
           });
       });
+      it('GET /:article_id/comments returns a 404 not found when the article specified is a valid input but does not exist', () => {
+        return request(app)
+          .get('/api/articles/404/comments')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
+          });
+      });
+      it('GET /:article_id/comments returns a 400 bad request when the article specified is a nonsensical input', () => {
+        return request(app)
+          .get('/api/articles/trump-declares-war-on-mexico/comments')
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
+          });
+      });
       it('PATCH /:comment_id returns 200 and returns the updated comment when the votes increment is a positive integer', () => {
         return request(app)
           .patch('/api/comments/1')
@@ -290,6 +313,15 @@ describe('app', () => {
             expect(body.msg).to.equal('invalid update');
           });
       });
+      it('PATCH /:comment_id returns 404 not found when the input is valid but the comment id is not', () => {
+        return request(app)
+          .patch('/api/comments/404')
+          .send({ inc_votes: 1 })
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
+          });
+      });
       it('DELETE /:comment_id returns a 204 and deletes the comment', () => {
         return request(app)
           .delete('/api/comments/1')
@@ -303,7 +335,7 @@ describe('app', () => {
             expect(body.msg).to.equal('bad request');
           });
       });
-      it('DELETE /:comment_id returns a 404 and returns a not for non existent comments', () => {
+      it('DELETE /:comment_id returns a 404 and returns not found for non existent comments', () => {
         return request(app)
           .delete('/api/comments/404')
           .expect(404)

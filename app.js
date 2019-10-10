@@ -13,8 +13,8 @@ app.use('/api', apiRouter);
 app.use(customErrorHandling);
 app.use(PSQLerrors);
 app.use(errorCatcher);
-app.use(invalidMethod);
 app.all('/*', (req, res, next) => {
   res.status(404).send({ msg: 'route not found' });
 });
+app.use(invalidMethod);
 module.exports = app;

@@ -11,6 +11,12 @@ exports.fetchArticleById = ({ article_id }) => {
       if (article_id) query.where({ 'articles.article_id': article_id });
     })
     .then(article => {
+      if (article.length === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: 'not found'
+        });
+      }
       if (!article) {
         return Promise.reject({
           status: 400,
@@ -68,7 +74,15 @@ exports.fetchCommentsByArticle = (
     .select('*')
     .from('comments')
     .where('article_id', article_id)
-    .orderBy(sorter, order);
+    .orderBy(sorter, order)
+    .then(comments => {
+      if (comments.length === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: 'not found'
+        });
+      } else return comments;
+    });
 };
 
 exports.fetchAllArticles = (
