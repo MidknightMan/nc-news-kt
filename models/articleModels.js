@@ -89,8 +89,8 @@ exports.fetchAllArticles = (
       if (topic) query.where({ 'articles.topic': topic });
     })
     .then(articleList => {
-      if (!articleList) {
-        return Promise.reject({ status: 400, msg: 'not found' });
+      if (articleList.length === 0 || !articleList) {
+        return Promise.reject({ status: 400, msg: 'bad request' });
       } else return articleList;
     });
 };

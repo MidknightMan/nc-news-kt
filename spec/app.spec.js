@@ -127,7 +127,7 @@ describe('app', () => {
             expect(body.articles).to.be.ascendingBy('created_at');
           });
       });
-      it.only('GET /?author=icellusedkars returns only a list of articles written by the specified author', () => {
+      it('GET /?author=icellusedkars returns only a list of articles written by the specified author', () => {
         return request(app)
           .get('/api/articles?author=icellusedkars')
           .expect(200)
@@ -137,7 +137,7 @@ describe('app', () => {
             });
           });
       });
-      it.only('GET /?topic=cats returns only a list of articles written by the specified author', () => {
+      it('GET /?topic=cats returns only a list of articles written by the specified author', () => {
         return request(app)
           .get('/api/articles?topic=cats')
           .expect(200)
@@ -145,6 +145,30 @@ describe('app', () => {
             body.articles.forEach(article => {
               expect(article.topic).to.equal('cats');
             });
+          });
+      });
+      it('GET /? returns a 400 bad request when an invalid author is specified as a query', () => {
+        return request(app)
+          .get('/api/articles?author=pryda')
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
+          });
+      });
+      it('GET /? returns a 400 bad request when an invalid topic is specified as a query', () => {
+        return request(app)
+          .get('/api/articles?topic=tromb')
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
+          });
+      });
+      it('GET /? returns a 400 bad request when an invalid column is specified as a sort_by query', () => {
+        return request(app)
+          .get('/api/articles?sort_by=bass')
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
           });
       });
     });
@@ -213,6 +237,15 @@ describe('app', () => {
           .expect(200)
           .then(({ body }) => {
             expect(body.comments).to.be.sorted({ ascending: true });
+          });
+      });
+      it.only('PATCH /:comment_id returns 200 and returns the updated comment', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: 1 })
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comment[0].votes).to.equal(1);
           });
       });
     });
