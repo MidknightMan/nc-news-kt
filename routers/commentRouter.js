@@ -1,6 +1,17 @@
 const commentRouter = require('express').Router();
-const { sendUpdatedComment } = require('../controllers/commentControllers');
+const {
+  sendUpdatedComment,
+  sendDeleteComment
+} = require('../controllers/commentControllers');
 
-commentRouter.route('/:comment_id').patch(sendUpdatedComment);
+const { invalidMethod } = require('../errors/errorHandling');
+
+commentRouter
+  .route('/:comment_id')
+  .patch(sendUpdatedComment)
+  .delete(sendDeleteComment)
+  .all(invalidMethod);
+
+commentRouter.route('/').all(invalidMethod);
 
 module.exports = commentRouter;

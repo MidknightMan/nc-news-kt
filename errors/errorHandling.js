@@ -17,3 +17,7 @@ exports.PSQLerrors = (err, req, res, next) => {
 exports.errorCatcher = (err, req, res, next) => {
   console.log(err);
 };
+
+exports.invalidMethod = (req, res, next) => {
+  res.status(405).send({ msg: 'bad method' });
+};

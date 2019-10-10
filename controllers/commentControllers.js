@@ -1,4 +1,4 @@
-const { updateComment } = require('../models/commentModels');
+const { updateComment, deleteComment } = require('../models/commentModels');
 
 exports.sendUpdatedComment = (req, res, next) => {
   const { body, params } = req;
@@ -6,5 +6,12 @@ exports.sendUpdatedComment = (req, res, next) => {
     .then(updatedComment => {
       res.status(200).send({ comment: updatedComment });
     })
+    .catch(next);
+};
+
+exports.sendDeleteComment = (req, res, next) => {
+  const { params } = req;
+  deleteComment(params)
+    .then(deletedComment => res.sendStatus(204))
     .catch(next);
 };

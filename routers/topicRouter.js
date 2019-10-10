@@ -1,6 +1,11 @@
 const topicRouter = require('express').Router();
 const { sendTopics } = require('../controllers/topicsControllers');
 
-topicRouter.route('/').get(sendTopics);
+const { invalidMethod } = require('../errors/errorHandling');
+
+topicRouter
+  .route('/')
+  .get(sendTopics)
+  .all(invalidMethod);
 
 module.exports = topicRouter;

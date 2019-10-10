@@ -11,7 +11,15 @@ describe('app', () => {
   beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
   describe('/api', () => {
-    xit('GET / responds with 200 and a JSON file containing all endpoints available', () => {});
+    it.only('GET / responds with 200 and a JSON file containing all endpoints available', () => {
+      request(app)
+        .get('/api')
+        .expect(200)
+        .then(({ body }) => {
+          console.log(body);
+          expect(body).to.be.an('object');
+        });
+    });
     it('GET /aoi returns a 404 route not found message', () => {
       return request(app)
         .get('/aoi')
@@ -173,6 +181,22 @@ describe('app', () => {
       });
     });
     describe('/comments', () => {
+      it('GET / returns a 405 error for an invalid method', () => {
+        return request(app)
+          .get('/api/comments')
+          .expect(405)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad method');
+          });
+      });
+      it('GET /:comment_id returns a 405 error for an invalid method', () => {
+        return request(app)
+          .get('/api/comments/1')
+          .expect(405)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad method');
+          });
+      });
       it('POST /:article_id/comments returns a 201 status code and adds a comment to the specified article returning the posted comment', () => {
         return request(app)
           .post('/api/articles/2/comments')
@@ -239,13 +263,52 @@ describe('app', () => {
             expect(body.comments).to.be.sorted({ ascending: true });
           });
       });
-      it.only('PATCH /:comment_id returns 200 and returns the updated comment', () => {
+      it('PATCH /:comment_id returns 200 and returns the updated comment when the votes increment is a positive integer', () => {
         return request(app)
           .patch('/api/comments/1')
-          .send({ inc_votes: 1 })
+          .send({ inc_votes: 10 })
           .expect(200)
           .then(({ body }) => {
-            expect(body.comment[0].votes).to.equal(1);
+            expect(body.comment[0].votes).to.equal(26);
+          });
+      });
+      it('PATCH /:comment_id returns 200 and returns the updated comment when the votes increment is a negative number', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: -10 })
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comment[0].votes).to.equal(6);
+          });
+      });
+      it('PATCH /:comment_id returns 400 bad request when the input is invalid', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({ inc_votes: 'post malone' })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('invalid update');
+          });
+      });
+      it('DELETE /:comment_id returns a 204 and deletes the comment', () => {
+        return request(app)
+          .delete('/api/comments/1')
+          .expect(204);
+      });
+      it('DELETE /:comment_id returns a 400 and returns a bad request for invalid inputs', () => {
+        return request(app)
+          .delete('/api/comments/hugoboss')
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad request');
+          });
+      });
+      it('DELETE /:comment_id returns a 404 and returns a not for non existent comments', () => {
+        return request(app)
+          .delete('/api/comments/404')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
           });
       });
     });
