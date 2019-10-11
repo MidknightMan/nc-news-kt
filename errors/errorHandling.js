@@ -21,3 +21,7 @@ exports.errorCatcher = (err, req, res, next) => {
 exports.invalidMethod = (req, res, next) => {
   res.status(405).send({ msg: 'bad method' });
 };
+
+exports.routeNotFound = (req, res, next) => {
+  res.status(404).send({ msg: 'route not found' });
+};

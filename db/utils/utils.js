@@ -16,7 +16,7 @@ exports.makeRefObj = list => {
 };
 
 exports.formatComments = (comments, articleRef) => {
-  const formatCom1 = comments.map(
+  const formatComment = comments.map(
     ({ created_by, belongs_to, ...restOfComment }) => {
       const formattedComment = { ...restOfComment };
       formattedComment.author = created_by;
@@ -24,5 +24,5 @@ exports.formatComments = (comments, articleRef) => {
       return formattedComment;
     }
   );
-  return this.formatDates(formatCom1);
+  return this.formatDates(formatComment);
 };

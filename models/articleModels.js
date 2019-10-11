@@ -28,6 +28,7 @@ exports.fetchArticleById = ({ article_id }) => {
 
 exports.updateArticleById = (id, vote) => {
   const { article_id } = id;
+  if (!vote.inc_votes) vote.inc_votes = 0;
   if (typeof vote.inc_votes !== 'number') {
     return Promise.reject({
       status: 400,
@@ -103,8 +104,41 @@ exports.fetchAllArticles = (
       if (topic) query.where({ 'articles.topic': topic });
     })
     .then(articleList => {
-      if (articleList.length === 0 || !articleList) {
+      if (author && typeof author === 'string') {
+        return this.checkAuthor(author).then(authorCheck => {
+          if (authorCheck.length === 0) {
+            return Promise.reject({
+              status: 404,
+              msg: 'not found'
+            });
+          } else return articleList;
+        });
+      }
+      if (topic && typeof topic === 'string') {
+        return this.checkTopic(topic).then(topicCheck => {
+          if (topicCheck.length === 0) {
+            return Promise.reject({
+              status: 404,
+              msg: 'not found'
+            });
+          } else return articleList;
+        });
+      } else if (articleList.length === 0 || !articleList) {
         return Promise.reject({ status: 400, msg: 'bad request' });
       } else return articleList;
     });
+};
+
+exports.checkAuthor = author => {
+  return db
+    .select('username')
+    .from('users')
+    .where({ username: author });
+};
+
+exports.checkTopic = topic => {
+  return db
+    .select('slug')
+    .from('topics')
+    .where({ slug: topic });
 };

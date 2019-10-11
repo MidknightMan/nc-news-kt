@@ -9,7 +9,7 @@ const {
 exports.sendArticleById = (req, res, next) => {
   fetchArticleById(req.params)
     .then(articleArr => {
-      res.status(200).send({ article: articleArr });
+      res.status(200).send({ article: articleArr[0] });
     })
     .catch(next);
 };
@@ -18,7 +18,7 @@ exports.sendUpdateArticleById = (req, res, next) => {
   const { params, body } = req;
   updateArticleById(params, body)
     .then(updatedArticle => {
-      res.status(200).send({ article: updatedArticle });
+      res.status(200).send({ article: updatedArticle[0] });
     })
     .catch(next);
 };
@@ -28,7 +28,7 @@ exports.sendAddedComment = (req, res, next) => {
   const { body } = req;
   addComment(params, body)
     .then(addedComment => {
-      res.status(201).send({ comment: addedComment });
+      res.status(201).send({ comment: addedComment[0] });
     })
     .catch(next);
 };

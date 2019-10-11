@@ -41,7 +41,7 @@ describe('app', () => {
           .get('/api/users/lurker')
           .expect(200)
           .then(({ body }) => {
-            expect(body.user[0]).to.have.keys('username', 'avatar_url', 'name');
+            expect(body.user).to.have.keys('username', 'avatar_url', 'name');
           });
       });
       it('GET /:username returns a 404 error code when a non existent username is requested', () => {
@@ -54,12 +54,21 @@ describe('app', () => {
       });
     });
     describe('/articles', () => {
+      it('PATCH / returns a 405 bad method response', () => {
+        return request(app)
+          .patch('/api/articles')
+          .send({ things: 'things' })
+          .expect(405)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('bad method');
+          });
+      });
       it('GET /:article_id returns a status code of 200 and the specified article object', () => {
         return request(app)
           .get('/api/articles/2')
           .expect(200)
           .then(({ body }) => {
-            expect(body.article[0]).to.contain.keys(
+            expect(body.article).to.contain.keys(
               'author',
               'title',
               'article_id',
@@ -75,7 +84,7 @@ describe('app', () => {
           .get('/api/articles/2')
           .expect(200)
           .then(({ body }) => {
-            expect(body.article[0]).to.contain.keys('comment_count');
+            expect(body.article).to.contain.keys('comment_count');
           });
       });
       it('GET /:article_id returns a 400 error when a nonsensical article_id is requested but the format of the request is a string', () => {
@@ -99,14 +108,14 @@ describe('app', () => {
           .patch('/api/articles/2')
           .send({ inc_votes: 1 })
           .expect(200)
-          .then(({ body }) => expect(body.article[0].votes).to.equal(1));
+          .then(({ body }) => expect(body.article.votes).to.equal(1));
       });
       it('PATCH /:article_id returns a 200 status code and lowers the vote count when passed a negative', () => {
         return request(app)
           .patch('/api/articles/2')
           .send({ inc_votes: -100 })
           .expect(200)
-          .then(({ body }) => expect(body.article[0].votes).to.equal(-100));
+          .then(({ body }) => expect(body.article.votes).to.equal(-100));
       });
       it('PATCH /:article_id returns a 400 status code when passed an invalid request', () => {
         return request(app)
@@ -116,6 +125,14 @@ describe('app', () => {
           })
           .expect(400)
           .then(({ body }) => expect(body.msg).to.equal('invalid update'));
+      });
+      it('PATCH /:article_id returns a 200 status given a request with no body and returns the article with unchanged votes', () => {
+        return request(app)
+          .patch('/api/articles/2')
+          .send({})
+          .then(({ body }) => {
+            expect(body.article.votes).to.equal(0);
+          });
       });
       it('GET / 200 returns a list of all articles which is sorted by default as descending by date', () => {
         return request(app)
@@ -162,20 +179,38 @@ describe('app', () => {
             });
           });
       });
-      it('GET /? returns a 400 bad request when an invalid author is specified as a query', () => {
+
+      it('GET /?author=lurker returns an empty array and 200 status code as the author exists but has no articles', () => {
         return request(app)
-          .get('/api/articles?author=pryda')
-          .expect(400)
+          .get('/api/articles?author=lurker')
+          .expect(200)
           .then(({ body }) => {
-            expect(body.msg).to.equal('bad request');
+            expect(body.articles).to.have.length(0);
           });
       });
-      it('GET /? returns a 400 bad request when an invalid topic is specified as a query', () => {
+      it('GET /?author=not-an-author returns 404 as the topic query is valid but the author does not exist', () => {
         return request(app)
-          .get('/api/articles?topic=tromb')
-          .expect(400)
+          .get('/api/articles/?author=not-an-author')
+          .expect(404)
           .then(({ body }) => {
-            expect(body.msg).to.equal('bad request');
+            expect(body.msg).to.equal('not found');
+          });
+      });
+
+      it('GET /?topic=paper returns an empty array and 200 status code as the topic exists but has no articles', () => {
+        return request(app)
+          .get('/api/articles?topic=paper')
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles).to.have.length(0);
+          });
+      });
+      it('GET /?topic=not-a-topic returns 404 as the topic query is valid but the topic does not exist', () => {
+        return request(app)
+          .get('/api/articles?topic=not-a-topic')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('not found');
           });
       });
       it('GET /? returns a 400 bad request when an invalid column is specified as a sort_by query', () => {
@@ -210,7 +245,7 @@ describe('app', () => {
           .send({ username: 'icellusedkars', body: 'que pretendes' })
           .expect(201)
           .then(({ body }) => {
-            expect(body.comment[0]).to.contain.keys(
+            expect(body.comment).to.contain.keys(
               'comments_id',
               'author',
               'article_id',
@@ -292,7 +327,7 @@ describe('app', () => {
           .send({ inc_votes: 10 })
           .expect(200)
           .then(({ body }) => {
-            expect(body.comment[0].votes).to.equal(26);
+            expect(body.comment.votes).to.equal(26);
           });
       });
       it('PATCH /:comment_id returns 200 and returns the updated comment when the votes increment is a negative number', () => {
@@ -301,7 +336,16 @@ describe('app', () => {
           .send({ inc_votes: -10 })
           .expect(200)
           .then(({ body }) => {
-            expect(body.comment[0].votes).to.equal(6);
+            expect(body.comment.votes).to.equal(6);
+          });
+      });
+      it('PATCH /:comment_id returns 200 and returns the comment with no change to votes when the request is sent with an empty object', () => {
+        return request(app)
+          .patch('/api/comments/1')
+          .send({})
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.comment.votes).to.equal(16);
           });
       });
       it('PATCH /:comment_id returns 400 bad request when the input is invalid', () => {

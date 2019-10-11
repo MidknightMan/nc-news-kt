@@ -1,6 +1,7 @@
 const db = require('../db/connection');
 
 exports.updateComment = (vote, id) => {
+  if (!vote.inc_votes) vote.inc_votes = 0;
   if (typeof vote.inc_votes !== 'number') {
     return Promise.reject({
       status: 400,
