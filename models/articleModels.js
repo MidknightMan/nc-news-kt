@@ -6,7 +6,7 @@ exports.fetchArticleById = ({ article_id }) => {
     .from('articles')
     .leftJoin('comments', 'articles.article_id', 'comments.article_id')
     .groupBy('articles.article_id')
-    .count('comments.comments_id as comment_count')
+    .count('comments.comment_id as comment_count')
     .modify(query => {
       if (article_id) query.where({ 'articles.article_id': article_id });
     })
@@ -97,7 +97,7 @@ exports.fetchAllArticles = (
     .from('articles')
     .leftJoin('comments', 'articles.article_id', 'comments.article_id')
     .groupBy('articles.article_id')
-    .count('comments.comments_id as comment_count')
+    .count('comments.comment_id as comment_count')
     .orderBy(sortby, order)
     .modify(query => {
       if (author) query.where({ 'articles.author': author });

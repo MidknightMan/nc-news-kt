@@ -10,7 +10,7 @@ exports.updateComment = (vote, id) => {
   }
   if (vote.inc_votes >= 0) {
     return db('comments')
-      .where('comments_id', '=', id.comment_id)
+      .where('comment_id', '=', id.comment_id)
       .increment('votes', vote.inc_votes)
       .returning('*')
       .then(comm => {
@@ -23,7 +23,7 @@ exports.updateComment = (vote, id) => {
       });
   } else if (vote.inc_votes < 0) {
     return db('comments')
-      .where('comments_id', '=', id.comment_id)
+      .where('comment_id', '=', id.comment_id)
       .decrement('votes', Math.abs(vote.inc_votes))
       .returning('*')
       .then(comm => {
@@ -39,7 +39,7 @@ exports.updateComment = (vote, id) => {
 
 exports.deleteComment = id => {
   return db('comments')
-    .where('comments_id', id.comment_id)
+    .where('comment_id', id.comment_id)
     .del()
     .returning('*')
     .then(delCom => {
