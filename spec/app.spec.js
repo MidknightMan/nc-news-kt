@@ -308,6 +308,14 @@ describe('app', () => {
       it('GET /:article_id/comments returns a 404 not found when the article specified is a valid input but does not exist', () => {
         return request(app)
           .get('/api/articles/404/comments')
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.eql('not found');
+          });
+      });
+      it('GET /:article_id/comments returns a 200 with an empty array when the article specified is a valid input but does no comments exist', () => {
+        return request(app)
+          .get('/api/articles/2/comments')
           .expect(200)
           .then(({ body }) => {
             expect(body.comments).to.eql([]);

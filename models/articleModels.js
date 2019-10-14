@@ -75,15 +75,16 @@ exports.fetchCommentsByArticle = (
     .select('*')
     .from('comments')
     .where('article_id', article_id)
-    .orderBy(sorter, order);
-  // .then(comments => {
-  //   if (comments.length === 0) {
-  //     return Promise.reject({
-  //       status: 404,
-  //       msg: 'not found'
-  //     });
-  //   } else return comments;
-  // });
+    .orderBy(sorter, order)
+    .then(comments => {
+      if (comments.length === 0) {
+        return this.checkArticle(article_id).then(articleCheck => {
+          if (articleCheck.length === 0) {
+            return Promise.reject({ status: 404, msg: 'not found' });
+          } else return comments;
+        });
+      } else return comments;
+    });
 };
 
 exports.fetchAllArticles = (
@@ -141,4 +142,11 @@ exports.checkTopic = topic => {
     .select('slug')
     .from('topics')
     .where({ slug: topic });
+};
+
+exports.checkArticle = article => {
+  return db
+    .select('article_id')
+    .from('articles')
+    .where('article_id', article);
 };
