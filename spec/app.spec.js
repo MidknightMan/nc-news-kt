@@ -246,7 +246,7 @@ describe('app', () => {
           .expect(201)
           .then(({ body }) => {
             expect(body.comment).to.contain.keys(
-              'comments_id',
+              'comment_id',
               'author',
               'article_id',
               'votes',
@@ -279,7 +279,7 @@ describe('app', () => {
           .expect(200)
           .then(({ body }) => {
             expect(body.comments[0]).to.contain.keys(
-              'comments_id',
+              'comment_id',
               'votes',
               'created_at',
               'author',
@@ -308,9 +308,9 @@ describe('app', () => {
       it('GET /:article_id/comments returns a 404 not found when the article specified is a valid input but does not exist', () => {
         return request(app)
           .get('/api/articles/404/comments')
-          .expect(404)
+          .expect(200)
           .then(({ body }) => {
-            expect(body.msg).to.equal('not found');
+            expect(body.comments).to.eql([]);
           });
       });
       it('GET /:article_id/comments returns a 400 bad request when the article specified is a nonsensical input', () => {
