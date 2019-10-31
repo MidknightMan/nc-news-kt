@@ -15,3 +15,7 @@ exports.fetchUserById = ({ username }) => {
       return user;
     });
 };
+
+exports.fetchAllUsers = () => {
+  return db.select('*').from('users');
+};

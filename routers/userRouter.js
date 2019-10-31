@@ -1,5 +1,8 @@
 const userRouter = require('express').Router();
-const { sendUserById } = require('../controllers/userControllers');
+const {
+  sendUserById,
+  sendAllUsers
+} = require('../controllers/userControllers');
 
 const { invalidMethod } = require('../errors/errorHandling');
 
@@ -8,4 +11,8 @@ userRouter
   .get(sendUserById)
   .all(invalidMethod);
 
+userRouter
+  .route('/')
+  .get(sendAllUsers)
+  .all(invalidMethod);
 module.exports = userRouter;
