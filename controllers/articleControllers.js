@@ -60,7 +60,9 @@ exports.sendAllArticles = (req, res, next) => {
 exports.sendPostedArticle = (req, res, next) => {
   const { body } = req;
   console.log(body);
-  postArticle(body).then(addedArticle => {
-    res.status(200).send({ addedArticle });
-  });
+  postArticle(body)
+    .then(addedArticle => {
+      res.status(200).send({ addedArticle });
+    })
+    .catch(next);
 };
