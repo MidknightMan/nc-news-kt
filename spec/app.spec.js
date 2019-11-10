@@ -63,6 +63,29 @@ describe('app', () => {
             expect(body.msg).to.equal('bad method');
           });
       });
+      it.only('POST / returns a 200 status code with the posted article', () => {
+        return request(app)
+          .post('/api/articles')
+          .send({
+            title: 'the one',
+            author: 'icellusedkars',
+            topic: 'mitch',
+            body:
+              'So you need to make your app respond to events from the server. Usually this is referred to as real-time, meaning you are not going to rely purely on the client to decide when to get data from the server, instead the server will stream data down to the client as it becomes available. Data gets pushed to the client from the server, instead of being pulled from the client.'
+          })
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.addedArticle[0]).to.contain.keys(
+              'author',
+              'title',
+              'article_id',
+              'body',
+              'topic',
+              'created_at',
+              'votes'
+            );
+          });
+      });
       it('GET /:article_id returns a status code of 200 and the specified article object', () => {
         return request(app)
           .get('/api/articles/2')

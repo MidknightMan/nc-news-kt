@@ -4,7 +4,8 @@ const {
   sendUpdateArticleById,
   sendAddedComment,
   sendArticleComments,
-  sendAllArticles
+  sendAllArticles,
+  sendPostedArticle
 } = require('../controllers/articleControllers');
 
 const { invalidMethod } = require('../errors/errorHandling');
@@ -24,6 +25,7 @@ articleRouter
 articleRouter
   .route('/')
   .get(sendAllArticles)
+  .post(sendPostedArticle)
   .all(invalidMethod);
 
 module.exports = articleRouter;

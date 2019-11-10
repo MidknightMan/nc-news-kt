@@ -150,3 +150,23 @@ exports.checkArticle = article => {
     .from('articles')
     .where('article_id', article);
 };
+
+exports.postArticle = body => {
+  return db('articles')
+    .insert({
+      title: body.title,
+      author: body.author,
+      topic: body.topic,
+      body: body.body
+    })
+    .returning('*')
+    .then(postedArticle => {
+      console.log(postedArticle);
+      if (!postedArticle) {
+        return Promise.reject({
+          status: 400,
+          msg: 'bad request'
+        });
+      } else return postedArticle;
+    });
+};
